@@ -5,7 +5,7 @@ import time
 import plotly.graph_objects as go
 from model import predict, load_model 
 
-# 1. إعدادات الصفحة
+# 1. إعدادات الصفحة الفائقة
 st.set_page_config(
     page_title="Neural-Med V4.5 Pro",
     page_icon="🧬",
@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. نظام اللغات
+# 2. نظام اللغات (Translations)
 if 'lang' not in st.session_state:
     st.session_state.lang = 'Arabic'
 
@@ -38,12 +38,11 @@ translations = {
 
 T = translations[st.session_state.lang]
 
-# 3. الـ CSS (البسملة + الزرار الأحمر المتوهج + المستطيلات الذهبية)
+# 3. الـ CSS الاحترافي (الأخضر المتوهج للمؤشرات + الأحمر النبضي للزر)
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@700&display=swap');
 
-    /* إخفاء الهيدر والزوائد */
     header[data-testid="stHeader"], [data-testid="stToolbar"], footer {{visibility: hidden;}}
 
     .stApp {{
@@ -53,17 +52,16 @@ st.markdown(f"""
         direction: {T['dir']};
     }}
 
-    /* --- تصميم البسملة المتوهجة --- */
+    /* --- البسملة المتوهجة --- */
     .basmala {{
         text-align: center;
         width: 100%;
         font-size: 2.5rem;
         color: #ffcc00;
-        text-shadow: 0 0 20px #ffcc00, 0 0 40px #ffcc0066;
-        font-family: 'Cairo', sans-serif;
+        text-shadow: 0 0 15px #ffcc00, 0 0 30px #ffcc0066;
         padding: 20px 0;
-        margin-bottom: 10px;
-        border-bottom: 1px solid rgba(255, 204, 0, 0.2);
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 204, 0, 0.1);
     }}
 
     /* السايد بار وتوهج اسمك */
@@ -75,24 +73,33 @@ st.markdown(f"""
         font-size: 1.3rem; font-weight: bold;
     }}
 
+    /* --- الأخضر المتوهج للجلوكوز والمؤشرات --- */
+    .stNumberInput label {{ 
+        color: #39ff14 !important; 
+        font-weight: bold !important;
+        text-shadow: 0 0 10px #39ff14, 0 0 20px rgba(57, 255, 20, 0.3);
+        font-size: 1.1rem !important;
+        margin-bottom: 10px !important;
+    }}
+
     /* المستطيلات الذهبية للعناوين */
-    .yellow-glow-box {{
-        background: rgba(255, 204, 0, 0.05);
-        border: 1.5px solid #ffcc00;
-        box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
-        padding: 12px;
+    .yellow-box {{
+        background: rgba(255, 204, 0, 0.03);
+        border: 1px solid #ffcc00;
+        box-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
+        padding: 10px;
         border-radius: 12px;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
         color: #ffcc00 !important;
         font-weight: bold;
         text-align: center;
-        text-shadow: 0 0 10px #ffcc00;
+        text-shadow: 0 0 8px #ffcc00;
     }}
 
-    /* زرار الفحص الأحمر المتوهج (طبق الأصل مع نبض نيون) */
-    @keyframes redNeonPulse {{
+    /* --- زر الفحص الأحمر المتوهج (نفس قوة توهج اسمك) --- */
+    @keyframes redPulse {{
         0% {{ box-shadow: 0 0 10px #ff4b4b; transform: scale(1); }}
-        50% {{ box-shadow: 0 0 35px #ff0000, 0 0 60px #ff000044; transform: scale(1.02); }}
+        50% {{ box-shadow: 0 0 35px #ff0000, 0 0 50px #ff000044; transform: scale(1.02); }}
         100% {{ box-shadow: 0 0 10px #ff4b4b; transform: scale(1); }}
     }}
     .stButton>button {{
@@ -103,13 +110,13 @@ st.markdown(f"""
         font-size: 1.6rem;
         border-radius: 15px;
         border: none;
-        padding: 1.4rem;
-        animation: redNeonPulse 2s infinite ease-in-out;
+        padding: 1.5rem;
+        animation: redPulse 2s infinite ease-in-out;
         text-shadow: 0 0 10px #ffffff66;
     }}
     .stButton>button:hover {{
         background: #ff0000 !important;
-        box-shadow: 0 0 70px #ff0000 !important;
+        box-shadow: 0 0 60px #ff0000 !important;
     }}
 
     [data-testid="stForm"] {{ background-color: #0c141d !important; border: 1px solid #1e293b !important; border-radius: 25px !important; }}
@@ -117,10 +124,10 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# 4. البسملة في أعلى الصفحة (أول عنصر)
+# 4. البسملة في القمة
 st.markdown("<div class='basmala'>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>", unsafe_allow_html=True)
 
-# 5. السايد بار (المطور + اللغة)
+# 5. السايد بار
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3843/3843187.png", width=80)
     st.markdown(f"<div class='dev-name'>{T['dev']}</div>", unsafe_allow_html=True)
@@ -130,35 +137,35 @@ with st.sidebar:
         st.session_state.lang = lang_choice
         st.rerun()
 
-# 6. الهيدر الرئيسي
+# 6. الهيدر
 st.markdown(f"<h1 style='font-family:Orbitron; color:#00f2ea; margin:0;'>{T['title']}</h1>", unsafe_allow_html=True)
 
 model, scaler = load_model()
 
-# 7. توزيع المحتوى
+# 7. المحتوى الرئيسي
 col_input, col_viz = st.columns([1.3, 1])
 
 with col_input:
-    with st.form("mustafa_holy_form"):
+    with st.form("mustafa_neon_master_form"):
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown(f"<div class='yellow-glow-box'>{T['group_1']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='yellow-box'>{T['group_1']}</div>", unsafe_allow_html=True)
             glu = st.number_input(T['labels'][1], 0, 300, 120)
             ins = st.number_input(T['labels'][4], 0, 900, 80)
             preg = st.number_input(T['labels'][0], 0, 20, 0)
             bp = st.number_input(T['labels'][2], 0, 200, 80)
         with c2:
-            st.markdown(f"<div class='yellow-glow-box'>{T['group_2']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='yellow-box'>{T['group_2']}</div>", unsafe_allow_html=True)
             bmi = st.number_input(T['labels'][5], 0.0, 70.0, 25.0)
             age = st.number_input(T['labels'][7], 0, 120, 30)
             dpf = st.number_input(T['labels'][6], 0.0, 3.0, 0.5)
             skin = st.number_input(T['labels'][3], 0, 100, 20)
         
         st.markdown("<br>", unsafe_allow_html=True)
+        # زر الفحص الأحمر المتوهج
         submit = st.form_submit_button(T['btn'])
 
 with col_viz:
-    st.markdown(f"#### AI Profile Analytics")
     fig_radar = go.Figure(data=go.Scatterpolar(
         r=[preg, glu, bp, skin, ins, bmi, dpf, age], theta=T['labels'],
         fill='toself', fillcolor='rgba(0, 242, 234, 0.1)', line=dict(color='#00f2ea', width=3)
@@ -169,7 +176,7 @@ with col_viz:
     )
     st.plotly_chart(fig_radar, use_container_width=True)
 
-# 8. النتائج
+# 8. قسم النتائج
 if submit:
     features = np.array([preg, glu, bp, skin, ins, bmi, dpf, age])
     with st.status("🧠 Scanning Bio-Neural Patterns...") as s:
@@ -179,7 +186,7 @@ if submit:
     
     color = "#ff0055" if result == 1 else "#00f2ea"
     st.markdown(f"""
-        <div style="border: 2px solid {color}; background: {color}11; padding: 40px; border-radius: 25px; text-align: center; box-shadow: 0 0 30px {color}44;">
+        <div style="border: 2px solid {color}; background: {color}11; padding: 40px; border-radius: 25px; text-align: center; box-shadow: 0 0 35px {color}44;">
             <h1 style="color:{color}; background:none; -webkit-text-fill-color:{color}; font-size:3rem; margin:0;">
                 {T['res_pos'] if result == 1 else T['res_neg']}
             </h1>
