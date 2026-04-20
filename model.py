@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from xgboost import XGBClassifier # دي اللي المفروض تكون موجودة
 import pickle
 import os
+import streamlit as st  # السطر ده اللي ناقص يا هندسة
 
 # دالة التدريب
 def train_and_save_model():
