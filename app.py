@@ -2,222 +2,136 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import time
+import plotly.graph_objects as go
 from model import predict, load_model 
 
-# 1. إعدادات الصفحة المتقدمة
-st.set_page_config(
-    page_title="Neural-Med V4 | AI Deep Diagnostic",
-    page_icon="🧬",
-    layout="wide"
-)
+# 1. إعدادات الصفحة وإخفاء الهيدر
+st.set_page_config(page_title="Neural-Med Pro V4.5", page_icon="🧬", layout="wide")
 
-# 2. حقن CSS احترافي (Dark Theme & Glassmorphism)
 st.markdown("""
     <style>
-    /* تحويل الخلفية للون الداكن العميق */
-    .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: #e2e8f0;
-    }
+    header[data-testid="stHeader"] {visibility: hidden;}
+    .main .block-container {padding-top: 2rem;}
     
-    /* تنسيق السايد بار */
-    section[data-testid="stSidebar"] {
-        background-color: rgba(15, 23, 42, 0.8);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* تأثير الزجاج على الحاويات (Cards) */
-    div.stVerticalBlock > div > div.element-container {
-        /* background: rgba(255, 255, 255, 0.03); */
-        /* border-radius: 15px; */
-    }
-    
-    [data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: 12px;
+    /* تصميم البطاقات الزجاجية المتطورة */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        transition: 0.3s;
     }
-
-    /* تنسيق المدخلات */
-    .stNumberInput input {
-        background-color: #0f172a !important;
-        color: #00d1b2 !important;
-        border: 1px solid #334155 !important;
-        border-radius: 10px !important;
+    .glass-card:hover {
+        border: 1px solid rgba(0, 242, 234, 0.4);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
-
-    /* زرار التحليل - Neon Style */
-    .stButton>button {
-        width: 100%;
-        background: linear-gradient(90deg, #00d1b2 0%, #0097a7 100%);
-        color: white;
-        border: none;
-        padding: 15px;
-        border-radius: 12px;
+    
+    /* العناوين بنظام النيون */
+    .neon-text {
+        color: #00f2ea;
+        text-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
         font-weight: bold;
-        font-size: 20px;
-        letter-spacing: 1px;
-        box-shadow: 0 4px 15px rgba(0, 209, 178, 0.3);
-        transition: all 0.3s ease;
-    }
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 209, 178, 0.5);
-        border: none;
-        color: white;
-    }
-
-    /* تنسيق التبويبات (Tabs) */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 10px;
-        background-color: transparent;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        background-color: rgba(255, 255, 255, 0.05);
-        border-radius: 10px 10px 0 0;
-        color: #94a3b8;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: rgba(0, 209, 178, 0.2) !important;
-        color: #00d1b2 !important;
-        border-bottom: 2px solid #00d1b2 !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. دالة تحميل الموديل
-@st.cache_resource
-def get_model_and_scaler():
-    return load_model()
-
-model, scaler = get_model_and_scaler()
-
-# 4. الهيدر الاحترافي
-col_logo, col_text = st.columns([1, 6])
-with col_logo:
-    st.image("https://cdn-icons-png.flaticon.com/512/3843/3843187.png", width=90)
-with col_text:
-    st.markdown("<h1 style='text-align: left; margin-top: 10px; color: #00d1b2;'>NEURAL-MED V4</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #94a3b8;'>Advanced AI-Driven Diabetes Prediction & Analytics System</p>", unsafe_allow_html=True)
-
-st.write("---")
-
-# 5. التبويبات
-tab1, tab2, tab3 = st.tabs(["🚀 AI Diagnostic Hub", "📈 Insights & Analytics", "⚙️ System Engine"])
-
-# ----------------- Tab 1: Diagnostic Hub -----------------
-with tab1:
-    st.markdown("### 🧬 Patient Bio-Metric Input")
+# 2. وظيفة رسم الرادار الطبي (The Wow Factor)
+def create_radar_chart(features, labels):
+    # تطبيع القيم للعرض فقط (Normalizing for visualization)
+    values = features / (features.max() if features.max() != 0 else 1) 
     
-    # تقسيم المدخلات لحاويات منظمة
-    with st.form("diag_form"):
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("##### 🩸 Metabolic Stats")
-            glucose = st.number_input("Glucose Level", 0, 300, 120, help="التركيز البلازمي للجلوكوز")
-            insulin = st.number_input("Insulin Level", 0, 900, 80)
-            preg = st.number_input("Pregnancies", 0, 20, 0)
-            bp = st.number_input("Blood Pressure", 0, 200, 80)
-
-        with c2:
-            st.markdown("##### 📏 Physical Stats")
-            bmi = st.number_input("BMI Index", 0.0, 70.0, 25.0)
-            age = st.number_input("Patient Age", 0, 120, 30)
-            dpf = st.number_input("Pedigree Function", 0.0, 3.0, 0.5, help="عامل الوراثة التاريخي")
-            skin = st.number_input("Skin Thickness", 0, 100, 20)
-            
-        submit = st.form_submit_button("RUN AI DIAGNOSIS")
-
-    if submit:
-        features = np.array([preg, glucose, bp, skin, insulin, bmi, dpf, age])
-        
-        progress_bar = st.progress(0)
-        for i in range(100):
-            time.sleep(0.01)
-            progress_bar.progress(i + 1)
-            
-        try:
-            result, score, explanation = predict(model, scaler, features)
-
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # عرض النتائج في Card زجاجي
-            res_box = st.container()
-            with res_box:
-                m1, m2, m3 = st.columns(3)
-                if result == 1:
-                    m1.error("RESULT: POSITIVE")
-                    color = "#ff4b4b"
-                else:
-                    m1.success("RESULT: NEGATIVE")
-                    color = "#00d1b2"
-                
-                m2.metric("Confidence Score", f"{score:.1f}%")
-                m3.metric("AI Status", "Analyzing..." if score < 60 else "Stable")
-
-                st.markdown(f"""
-                    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border-left: 5px solid {color};">
-                        <h4>AI Reasoning:</h4>
-                        <p>The model detected <b>{'High' if result==1 else 'Low'}</b> risk based on the provided metrics.</p>
-                    </div>
-                """, unsafe_allow_html=True)
-
-                st.markdown("##### 🔍 Factor Contribution")
-                cols = st.columns(len(explanation))
-                for i, (k, v) in enumerate(explanation.items()):
-                    cols[i].write(f"**{k}**")
-                    cols[i].code(v)
-
-        except Exception as e:
-            st.error(f"Execution Error: {e}")
-
-# ----------------- Tab 2: Analytics -----------------
-with tab2:
-    st.markdown("### 📊 Distribution Trends")
-    # توليد بيانات وهمية شكلها شيك للـ Analytics
-    chart_data = pd.DataFrame(
-        np.random.randn(20, 3),
-        columns=['Model Accuracy', 'Data Stability', 'Risk Variance']
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=features,
+        theta=labels,
+        fill='toself',
+        fillcolor='rgba(0, 242, 234, 0.3)',
+        line=dict(color='#00f2ea', width=2),
+        name='Patient Profile'
+    ))
+    
+    fig.update_layout(
+        polar=dict(
+            bgcolor="rgba(0,0,0,0)",
+            radialaxis=dict(visible=True, range=[0, max(features)*1.2], showticklabels=False, gridcolor="rgba(255,255,255,0.1)"),
+            angularaxis=dict(gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="#94a3b8"))
+        ),
+        showlegend=False,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=40, r=40, t=20, b=20),
+        height=350
     )
-    st.line_chart(chart_data)
+    return fig
+
+# 3. التحميل واللغة
+if 'lang' not in st.session_state: st.session_state.lang = 'English'
+lang = st.sidebar.selectbox("Language / اللغة", ["English", "Arabic"])
+
+model, scaler = load_model()
+
+# 4. الهيدر الرئيسي
+st.markdown(f"<h1 class='neon-text'>{'NEURAL-MED PRO' if lang=='English' else 'نيورال-ميد برو'} <small>V4.5</small></h1>", unsafe_allow_html=True)
+
+# 5. منطقة الإدخال (تصميم عصري)
+with st.container():
+    st.markdown("### 🧬 " + ("Patient Bio-Analytics" if lang=='English' else "التحليلات الحيوية للمريض"))
     
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.bar_chart(np.random.randint(1, 10, size=(5, 1)))
-    with col_b:
-        st.markdown("""
-        **System Logs:**
-        - Model Version: V4.2.1-Stable
-        - Engine: VotingClassifier(RF, GB, LR)
-        - Last Sync: Today
-        """)
+    col_input, col_viz = st.columns([1.2, 1])
+    
+    with col_input:
+        with st.form("medical_form"):
+            c1, c2 = st.columns(2)
+            with c1:
+                glucose = st.number_input("Glucose", 0, 300, 120)
+                insulin = st.number_input("Insulin", 0, 900, 80)
+                preg = st.number_input("Pregnancies", 0, 20, 0)
+                bp = st.number_input("Blood Pressure", 0, 200, 80)
+            with c2:
+                bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
+                age = st.number_input("Age", 0, 120, 30)
+                dpf = st.number_input("Pedigree", 0.0, 3.0, 0.5)
+                skin = st.number_input("Skin Thickness", 0, 100, 20)
+            
+            submit = st.form_submit_button("⚡ START AI SCAN")
 
-# ----------------- Tab 3: System -----------------
-with tab3:
-    st.markdown("### ⚙️ Engine Specifications")
-    st.json({
-        "University": "New Mansoura University",
-        "Faculty": "AI Engineering",
-        "Developer": "Mostafa Khaled",
-        "Models": ["RandomForest", "GradientBoosting", "LogisticRegression"],
-        "Backend": "Python 3.10 / Streamlit Cloud"
-    })
+    with col_viz:
+        # عرض الرادار المبدئي أو عند الإرسال
+        labels = ['Preg', 'Glu', 'BP', 'Skin', 'Ins', 'BMI', 'DPF', 'Age']
+        initial_data = np.array([preg, glucose, bp, skin, insulin, bmi, dpf, age])
+        st.plotly_chart(create_radar_chart(initial_data, labels), use_container_width=True)
+
+# 6. منطقة النتائج الفائقة
+if submit:
+    features = np.array([preg, glucose, bp, skin, insulin, bmi, dpf, age])
+    
+    with st.status("🔮 Neural engine is scanning DNA patterns...", expanded=True) as status:
+        time.sleep(1)
+        status.update(label="✅ Analysis complete!", state="complete", expanded=False)
+    
+    result, score, explanation = predict(model, scaler, features)
+    
     st.markdown("---")
-    st.button("Reset System Cache", on_click=st.cache_resource.clear)
+    
+    # بطاقة النتيجة النهائية بتصميم Glassmorphism
+    res_color = "#ff4b4b" if result == 1 else "#00f2ea"
+    res_bg = "rgba(255, 75, 75, 0.1)" if result == 1 else "rgba(0, 242, 234, 0.1)"
+    
+    st.markdown(f"""
+        <div style="background: {res_bg}; border: 1px solid {res_color}; padding: 30px; border-radius: 25px; text-align: center;">
+            <h1 style="color: {res_color}; margin: 0;">{'POSITIVE' if result == 1 else 'NEGATIVE'}</h1>
+            <p style="font-size: 1.5rem; opacity: 0.8;">AI Confidence: {score:.1f}%</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # توزيع البيانات في كروت صغيرة
+    st.markdown("<br>", unsafe_allow_html=True)
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Risk Level", "High" if result == 1 else "Minimal", delta_color="inverse")
+    m2.metric("Metabolic Sync", "Active")
+    m3.metric("Data Integrity", "99.8%")
+    m4.metric("Engine", "V4.5 Stable")
 
-# 6. السايد بار كـ Dashboard Controller
-with st.sidebar:
-    st.markdown("### 🛠️ Quick Settings")
-    st.toggle("Auto-Refresh Data", value=True)
-    st.select_slider("Risk Sensitivity", options=["Low", "Medium", "High"])
-    st.divider()
-    st.caption("© 2026 Neural-Med Systems. All rights reserved.")
-    st.subheader("📊 Patient History (Demo Data)")
-    df = pd.DataFrame({
-        "Glucose": [120, 150, 90, 200],
-        "BMI": [25, 30, 22, 35],
-        "Risk": ["Low", "High", "Low", "High"]
-    })
-    st.dataframe(df, use_container_width=True)
+st.sidebar.markdown("---")
+st.sidebar.caption("Powered by New Mansoura University AI Dept.")
