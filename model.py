@@ -32,6 +32,7 @@ def train_and_save_model():
         pickle.dump(scaler, f)
 
 # دالة التحميل (تأكد إنها كدة ومافيهاش استيراد من model)
+@st.cache_resource
 def load_model():
     if not os.path.exists('model.pkl') or not os.path.exists('scaler.pkl'):
         train_and_save_model()
