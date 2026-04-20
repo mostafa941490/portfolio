@@ -5,133 +5,219 @@ import time
 import plotly.graph_objects as go
 from model import predict, load_model 
 
-# 1. إعدادات الصفحة وإخفاء الهيدر
+# 1. إعدادات الصفحة وإخفاء كل زوائد ستريمليت
 st.set_page_config(page_title="Neural-Med Pro V4.5", page_icon="🧬", layout="wide")
 
-st.markdown("""
+# 2. قاموس الترجمة الشامل (عربي / إنجليزي)
+if 'lang' not in st.session_state: st.session_state.lang = 'Arabic'
+
+texts = {
+    'English': {
+        'dir': 'ltr',
+        'title': 'NEURAL-MED V4.5 PRO',
+        'subtitle': 'Next-Gen AI Diabetes Intelligence',
+        'tab_diag': '🚀 Diagnostic Center',
+        'tab_stats': '📊 Analytics Insight',
+        'tab_engine': '⚙️ Core Engine',
+        'header_input': '🧬 Patient Bio-Metric Scan',
+        'group_1': '🩸 Metabolic Markers',
+        'group_2': '📏 Physical Metrics',
+        'btn': 'INITIALIZE AI SCAN',
+        'scanning': 'Analyzing Bio-Patterns...',
+        'result_pos': 'CRITICAL: DIABETIC RISK DETECTED',
+        'result_neg': 'NORMAL: NO SIGNIFICANT RISK',
+        'confidence': 'AI Confidence Score',
+        'reasoning': 'Neural Explanation',
+        'label_preg': 'Pregnancies',
+        'label_glu': 'Glucose Level',
+        'label_bp': 'Blood Pressure',
+        'label_skin': 'Skin Thickness',
+        'label_ins': 'Insulin',
+        'label_bmi': 'BMI Index',
+        'label_dpf': 'Pedigree Function',
+        'label_age': 'Patient Age',
+        'footer': 'Designed for NMU AI Engineering'
+    },
+    'Arabic': {
+        'dir': 'rtl',
+        'title': 'نيورال-ميد V4.5 برو',
+        'subtitle': 'الجيل القادم من ذكاء تشخيص السكري',
+        'tab_diag': '🚀 مركز التشخيص',
+        'tab_stats': '📊 التحليلات البيانية',
+        'tab_engine': '⚙️ المحرك الأساسي',
+        'header_input': '🧬 مسح المؤشرات الحيوية',
+        'group_1': '🩸 المؤشرات الأيضية',
+        'group_2': '📏 القياسات الفيزيائية',
+        'btn': 'بدء الفحص الذكي',
+        'scanning': 'جاري تحليل الأنماط الحيوية...',
+        'result_pos': 'تنبيه: تم رصد مخاطر إصابة',
+        'result_neg': 'آمن: لا توجد مخاطر ملحوظة',
+        'confidence': 'درجة ثقة الذكاء الاصطناعي',
+        'reasoning': 'التفسير العصبي للنتائج',
+        'label_preg': 'عدد مرات الحمل',
+        'label_glu': 'مستوى الجلوكوز',
+        'label_bp': 'ضغط الدم',
+        'label_skin': 'سمك الجلد',
+        'label_ins': 'الأنسولين',
+        'label_bmi': 'مؤشر كتلة الجسم',
+        'label_dpf': 'عامل الوراثة',
+        'label_age': 'عمر المريض',
+        'footer': 'تم التصميم لصالح هندسة الذكاء الاصطناعي بجامعة المنصورة الجديدة'
+    }
+}
+
+T = texts[st.session_state.lang]
+
+# 3. حقن CSS احترافي (الوضع المظلم الفخم)
+st.markdown(f"""
     <style>
-    header[data-testid="stHeader"] {visibility: hidden;}
-    .main .block-container {padding-top: 2rem;}
-    
-    /* تصميم البطاقات الزجاجية المتطورة */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 25px;
-        transition: 0.3s;
-    }
-    .glass-card:hover {
-        border: 1px solid rgba(0, 242, 234, 0.4);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-    
-    /* العناوين بنظام النيون */
-    .neon-text {
-        color: #00f2ea;
-        text-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Orbitron:wght@400;700&display=swap');
+
+    /* إخفاء الهيدر الأبيض */
+    header[data-testid="stHeader"] {{visibility: hidden;}}
+    .main .block-container {{padding-top: 1rem; direction: {T['dir']};}}
+
+    /* الخلفية والتنسيق العام */
+    .stApp {{
+        background-color: #050505;
+        color: #ffffff;
+        font-family: 'Cairo', sans-serif;
+    }}
+
+    /* حاويات المدخلات (Neon Glass) */
+    [data-testid="stForm"] {{
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(0, 242, 234, 0.2) !important;
+        border-radius: 25px !important;
+        padding: 30px !important;
+        box-shadow: 0 0 20px rgba(0, 242, 234, 0.05);
+    }}
+
+    /* تصميم الأزرار (Cyberpunk Button) */
+    .stButton>button {{
+        width: 100%;
+        background: linear-gradient(90deg, #00f2ea 0%, #007bff 100%);
+        color: white !important;
+        border: none;
+        padding: 20px;
+        border-radius: 15px;
         font-weight: bold;
-    }
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: 0.5s;
+        box-shadow: 0 0 15px rgba(0, 242, 234, 0.3);
+    }}
+    .stButton>button:hover {{
+        box-shadow: 0 0 30px rgba(0, 242, 234, 0.6);
+        transform: translateY(-3px);
+    }}
+
+    /* تنسيق النصوص */
+    h1, h2, h3 {{
+        font-family: 'Orbitron', 'Cairo', sans-serif;
+        background: linear-gradient(to right, #00f2ea, #ffffff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }}
+
+    /* تنسيق حقول الأرقام */
+    .stNumberInput label {{ color: #94a3b8 !important; font-weight: bold; }}
+    input {{
+        background-color: #0f172a !important;
+        color: #00f2ea !important;
+        border: 1px solid #1e293b !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
-# 2. وظيفة رسم الرادار الطبي (The Wow Factor)
-def create_radar_chart(features, labels):
-    # تطبيع القيم للعرض فقط (Normalizing for visualization)
-    values = features / (features.max() if features.max() != 0 else 1) 
-    
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=features,
-        theta=labels,
-        fill='toself',
-        fillcolor='rgba(0, 242, 234, 0.3)',
-        line=dict(color='#00f2ea', width=2),
-        name='Patient Profile'
-    ))
-    
-    fig.update_layout(
-        polar=dict(
-            bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, max(features)*1.2], showticklabels=False, gridcolor="rgba(255,255,255,0.1)"),
-            angularaxis=dict(gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color="#94a3b8"))
-        ),
-        showlegend=False,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=40, r=40, t=20, b=20),
-        height=350
-    )
-    return fig
+# 4. السايد بار (Sidebar)
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/3843/3843187.png", width=80)
+    st.markdown("### Neural-Med Console")
+    lang_choice = st.selectbox("🌍 Language / اللغة", ["Arabic", "English"], index=0 if st.session_state.lang == 'Arabic' else 1)
+    if lang_choice != st.session_state.lang:
+        st.session_state.lang = lang_choice
+        st.rerun()
+    st.divider()
+    st.caption(T['footer'])
 
-# 3. التحميل واللغة
-if 'lang' not in st.session_state: st.session_state.lang = 'English'
-lang = st.sidebar.selectbox("Language / اللغة", ["English", "Arabic"])
+# 5. الهيدر
+st.markdown(f"<h1>{T['title']}</h1>", unsafe_allow_html=True)
+st.markdown(f"<p style='color: #64748b; font-size: 1.1rem; margin-top:-10px;'>{T['subtitle']}</p>", unsafe_allow_html=True)
 
+# استدعاء الموديل
 model, scaler = load_model()
 
-# 4. الهيدر الرئيسي
-st.markdown(f"<h1 class='neon-text'>{'NEURAL-MED PRO' if lang=='English' else 'نيورال-ميد برو'} <small>V4.5</small></h1>", unsafe_allow_html=True)
+# 6. التبويبات (Tabs)
+tab1, tab2, tab3 = st.tabs([T['tab_diag'], T['tab_stats'], T['tab_engine']])
 
-# 5. منطقة الإدخال (تصميم عصري)
-with st.container():
-    st.markdown("### 🧬 " + ("Patient Bio-Analytics" if lang=='English' else "التحليلات الحيوية للمريض"))
-    
-    col_input, col_viz = st.columns([1.2, 1])
+with tab1:
+    col_input, col_radar = st.columns([1.3, 1])
     
     with col_input:
-        with st.form("medical_form"):
+        st.markdown(f"### {T['header_input']}")
+        with st.form("pro_scan_form"):
             c1, c2 = st.columns(2)
             with c1:
-                glucose = st.number_input("Glucose", 0, 300, 120)
-                insulin = st.number_input("Insulin", 0, 900, 80)
-                preg = st.number_input("Pregnancies", 0, 20, 0)
-                bp = st.number_input("Blood Pressure", 0, 200, 80)
+                st.markdown(f"<small style='color:#00f2ea'>{T['group_1']}</small>", unsafe_allow_html=True)
+                glucose = st.number_input(T['label_glu'], 0, 300, 120)
+                insulin = st.number_input(T['label_ins'], 0, 900, 80)
+                preg = st.number_input(T['label_preg'], 0, 20, 0)
+                bp = st.number_input(T['label_bp'], 0, 200, 80)
             with c2:
-                bmi = st.number_input("BMI", 0.0, 70.0, 25.0)
-                age = st.number_input("Age", 0, 120, 30)
-                dpf = st.number_input("Pedigree", 0.0, 3.0, 0.5)
-                skin = st.number_input("Skin Thickness", 0, 100, 20)
+                st.markdown(f"<small style='color:#00f2ea'>{T['group_2']}</small>", unsafe_allow_html=True)
+                bmi = st.number_input(T['label_bmi'], 0.0, 70.0, 25.0)
+                age = st.number_input(T['label_age'], 0, 120, 30)
+                dpf = st.number_input(T['label_dpf'], 0.0, 3.0, 0.5)
+                skin = st.number_input(T['label_skin'], 0, 100, 20)
             
-            submit = st.form_submit_button("⚡ START AI SCAN")
+            submit = st.form_submit_button(T['btn'])
 
-    with col_viz:
-        # عرض الرادار المبدئي أو عند الإرسال
-        labels = ['Preg', 'Glu', 'BP', 'Skin', 'Ins', 'BMI', 'DPF', 'Age']
-        initial_data = np.array([preg, glucose, bp, skin, insulin, bmi, dpf, age])
-        st.plotly_chart(create_radar_chart(initial_data, labels), use_container_width=True)
+    with col_radar:
+        # رسم الرادار التفاعلي
+        labels = [T['label_preg'], T['label_glu'], T['label_bp'], T['label_skin'], T['label_ins'], T['label_bmi'], T['label_dpf'], T['label_age']]
+        current_data = [preg, glucose, bp, skin, insulin, bmi, dpf, age]
+        
+        fig = go.Figure(data=go.Scatterpolar(
+            r=current_data,
+            theta=labels,
+            fill='toself',
+            fillcolor='rgba(0, 242, 234, 0.2)',
+            line=dict(color='#00f2ea', width=2)
+        ))
+        fig.update_layout(
+            polar=dict(
+                bgcolor="rgba(0,0,0,0)",
+                radialaxis=dict(visible=False),
+                angularaxis=dict(gridcolor="rgba(255,255,255,0.05)", tickfont=dict(color="#64748b", size=10))
+            ),
+            showlegend=False,
+            paper_bgcolor="rgba(0,0,0,0)",
+            margin=dict(l=40, r=40, t=40, b=40),
+            height=400
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-# 6. منطقة النتائج الفائقة
+# 7. معالجة النتائج
 if submit:
     features = np.array([preg, glucose, bp, skin, insulin, bmi, dpf, age])
     
-    with st.status("🔮 Neural engine is scanning DNA patterns...", expanded=True) as status:
-        time.sleep(1)
-        status.update(label="✅ Analysis complete!", state="complete", expanded=False)
-    
-    result, score, explanation = predict(model, scaler, features)
+    with st.status(T['scanning']) as status:
+        time.sleep(1.5)
+        result, score, explanation = predict(model, scaler, features)
+        status.update(label="Scanning Complete", state="complete", expanded=False)
     
     st.markdown("---")
     
-    # بطاقة النتيجة النهائية بتصميم Glassmorphism
-    res_color = "#ff4b4b" if result == 1 else "#00f2ea"
-    res_bg = "rgba(255, 75, 75, 0.1)" if result == 1 else "rgba(0, 242, 234, 0.1)"
+    # بطاقة النتيجة النهائية (Neon Alert)
+    res_color = "#ff0055" if result == 1 else "#00f2ea"
+    res_bg = "rgba(255, 0, 85, 0.05)" if result == 1 else "rgba(0, 242, 234, 0.05)"
+    res_text = T['result_pos'] if result == 1 else T['result_neg']
     
     st.markdown(f"""
-        <div style="background: {res_bg}; border: 1px solid {res_color}; padding: 30px; border-radius: 25px; text-align: center;">
-            <h1 style="color: {res_color}; margin: 0;">{'POSITIVE' if result == 1 else 'NEGATIVE'}</h1>
-            <p style="font-size: 1.5rem; opacity: 0.8;">AI Confidence: {score:.1f}%</p>
+        <div style="background: {res_bg}; border: 2px solid {res_color}; padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 0 30px {res_color}33;">
+            <h1 style="color: {res_color}; margin: 0; background:none; -webkit-text-fill-color: {res_color};">{res_text}</h1>
+            <p style="font-size: 1.8rem; color: #fff; margin-top:10px;">{T['confidence']}: {score:.1f}%</p>
         </div>
     """, unsafe_allow_html=True)
-    
-    # توزيع البيانات في كروت صغيرة
-    st.markdown("<br>", unsafe_allow_html=True)
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Risk Level", "High" if result == 1 else "Minimal", delta_color="inverse")
-    m2.metric("Metabolic Sync", "Active")
-    m3.metric("Data Integrity", "99.8%")
-    m4.metric("Engine", "V4.5 Stable")
-
-st.sidebar.markdown("---")
-st.sidebar.caption("Powered by New Mansoura University AI Dept.")
