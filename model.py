@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
 
-DATA_PATH = r"C:\Users\jb124\Desktop\diabetes\diabetes.csv"
+DATA_PATH = "diabetes.csv"
 
 def load_model():
 
